@@ -1,12 +1,12 @@
-import pokemons from "../assets/data/pokemons.json";
-import pokemonsSeen from "../assets/data/seen.json";
-import { Pokemon } from "../types/pokemon";
+import pokemons from "../../assets/data/pokemons.json";
+import pokemonsSeen from "../../assets/data/seen.json";
+import { Pokemon } from "../../types/pokemon";
 import {
     A,
     useRouteData
 } from "solid-start";
 
-export function routeData() {
+export function routeData(): { pokemons: Pokemon[]; pokemonsSeen: number[] } {
     return {
         pokemons,
         pokemonsSeen,
@@ -33,7 +33,7 @@ export default function Pokedex() {
                 {pokemons.map((pokemon, index: number) => {
                     const seenClass = isPokemonSeen(pokemon.id) ? "pokemon--seen" : "";
                     return (
-                        <A href={`/pokedex/${pokemon.id}`} key={index}>
+                        <A href={`/pokedex/${pokemon.id}`} >
                             <div class={`pokemon__item ${seenClass}`}>
                                 <div class="pokemon__header">
                                     <img src="/image/pokeball.webp"></img>
@@ -41,7 +41,7 @@ export default function Pokedex() {
                                 </div>
                                 <img
                                     class="pokemon__image"
-                                    src={pokemon.sprites.front_default}
+                                    src={pokemon.sprites.front_default as string}
                                 ></img>
                                 <h2 class="pokemon__name">
                                     {isPokemonSeen(pokemon.id) ? pokemon.name : "???"}

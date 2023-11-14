@@ -12,9 +12,13 @@ import {
   Title,
 } from "solid-start";
 import "./assets/styles/master.scss";
-import Header from "./components/header";
+import Header from "./components/Header";
+import bag from "./assets/data/bag.json";
 
 export default function Root() {
+  let count = Object.keys(bag).length;
+  console.log(count)
+
   return (
     <Html lang="en">
       <Head>
@@ -25,7 +29,7 @@ export default function Root() {
       <Body>
         <Suspense>
           <ErrorBoundary>
-            <Header></Header>
+            <Header count={count}></Header>
             <Routes>
               <FileRoutes />
             </Routes>

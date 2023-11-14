@@ -1,55 +1,63 @@
-import pokemons from "../assets/data/pokemons.json";
-import pokemonsSeen from "../assets/data/seen.json";
-import { Pokemon } from "../types/pokemon";
+import { createEffect, createSignal } from 'solid-js';
+import pokemons from '../assets/data/pokemons.json';
 import { selectRandomPokemon, getRandomPosition } from "../utils/pokemonUtils";
-import {
-  useRouteData
-} from "solid-start";
-
-export function routeData() {
-  return {
-    pokemons
-  };
-}
-
+import { Pokemon, PositionedPokemon } from "../types/pokemon";
 
 export default function Home() {
-  const data = useRouteData<typeof routeData>();
-  let { pokemons } = data;
+  const [currentPokemons, setCurrentPokemons] = createSignal<PositionedPokemon[]>([]);
 
-  const intervalId = setInterval(() => {
-    const updatedPokemons = selectRandomPokemon(pokemons, 6).map(
-      (pokemon: Pokemon) => ({
-        ...pokemon,
-        position: getRandomPosition(),
-      })
-    );
-  }, 3000);
+  createEffect(() => {
+    const intervalId = setInterval(() => {
+      const updatedPokemons = selectRandomPokemon(pokemons, 6).map(
+        (pokemon) => ({
+          ...pokemon,
+          position: getRandomPosition(),
+        })
+      );
+      setCurrentPokemons(updatedPokemons);
+    }, 3000);
 
-  clearInterval(intervalId);
+    return () => clearInterval(intervalId);
+  });
+
+  const handleCapture = async (pokemon: Pokemon) => {
+    try {
+      const response = await fetch("/api/capture", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(pokemon),
+      });
+
+      if (!response.ok) {
+        throw new Error("Problème lors de la capture du Pokémon");
+      }
+
+      const result = await response.json();
+      alert(result.message);
+    } catch (error) {
+      console.error("Erreur de capture:", error);
+    }
+  };
 
   return (
-    <>
-      <section class="home__container">
-        <h1>Attrape les pokemons et complète ton Pokedex !</h1>
-      </section>
+    <div>
       <div>
-        {pokemons.map((pokemon, index) => (
+        {currentPokemons().map((pokemon: PositionedPokemon, index) => (
           <div
-            key={index}
-            className="wild__pokemon"
-            // onClick={() => handleCapture(pokemon)}
+            class="wild__pokemon"
+            onClick={() => handleCapture(pokemon)}
             style={{
               position: "absolute",
-              // left: `${pokemon.position.x}px`,
-              // top: `${pokemon.position.y}px`,
+              left: `${pokemon.position.x}px`,
+              top: `${pokemon.position.y}px`,
             }}
           >
-            <img src={pokemon.sprites.front_default} alt={`Pokemon ${index}`} />
+            <img src={pokemon.sprites.front_default as string} alt={`Pokemon ${index}`} />
           </div>
         ))}
       </div>
-      <p class="pokemon__info">Pokemon capturé !</p>
-    </>
+    </div>
   );
 }
