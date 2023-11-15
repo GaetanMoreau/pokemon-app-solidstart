@@ -21,13 +21,21 @@ export default function Home() {
   });
 
   const handleCapture = async (pokemon: Pokemon) => {
+    const pokemonCaptured = {
+      uuid: Date.now(),
+      id: pokemon.id,
+      name: pokemon.name,
+      sprites: {
+        front_default: pokemon.sprites.front_default,
+      },
+    };
     try {
       const response = await fetch("/api/capture", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(pokemon),
+        body: JSON.stringify(pokemonCaptured),
       });
 
       if (!response.ok) {
@@ -35,7 +43,11 @@ export default function Home() {
       }
 
       const result = await response.json();
-      alert(result.message);
+      let info = document.querySelector('.pokemon__info')
+      info?.classList.add("in");
+      setTimeout(() => {
+        info?.classList.remove("in");
+      }, 1000);
     } catch (error) {
       console.error("Erreur de capture:", error);
     }
@@ -58,6 +70,7 @@ export default function Home() {
           </div>
         ))}
       </div>
+      <p class="pokemon__info">Pokemon capturé !</p>
     </div>
   );
 }
