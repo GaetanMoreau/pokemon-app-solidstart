@@ -2,6 +2,7 @@ import { Form } from "solid-start/data/Form";
 import capturedPokemons from "../../assets/data/bag.json";
 import pokemons from "../../assets/data/pokemons.json";
 import { Pokemon } from "../../types/pokemon";
+import { createSignal } from 'solid-js';
 
 import {
     A,
@@ -15,7 +16,9 @@ export function routeData() {
     };
 }
 
-const handleReleased = async (pokemon: any) => {
+const [selectedPokemon, setSelectedPokemon] = createSignal<Pokemon | null>(null);
+
+const handleReleased = async (pokemon: Pokemon) => {
     const pokemonReleased = {
         uuid: pokemon.uuid
     };
@@ -33,18 +36,35 @@ const handleReleased = async (pokemon: any) => {
     }
 };
 
-const handleRename = async (pokemon: any) => {
+const handleRename = async (pokemon: Pokemon) => {
+    setSelectedPokemon(pokemon);
     let pokemonRenameForm = document.querySelector('.pokemon__form__container')
     pokemonRenameForm?.classList.add("in");
 }
 
-const handleFormSubmit = async () => {
+const handleFormCancel = async () => {
     let pokemonRenameForm = document.querySelector('.pokemon__form__container')
     pokemonRenameForm?.classList.remove("in");
+}
+
+const handleFormSubmit = async (event: Event) => {
+    event.preventDefault();
+    const pokemonData = selectedPokemon();
+    if (!pokemonData) {
+        console.error("Aucun Pokémon sélectionné pour renommer");
+        return;
+    }
+
+    const form = event.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const name = formData.get("name");
+    const uuid = pokemonData.uuid;
+
     const pokemonToRename = {
-        uuid: 1700077977712,
-        name: '??',
+        uuid: uuid,
+        name: name,
     };
+
     try {
         const response = await fetch("/api/rename/" + pokemonToRename.uuid, {
             method: "POST",
@@ -99,14 +119,14 @@ export default function Sac() {
                 <h2>Choisissez le nouveau nom du pokemon</h2>
                 <Form class="pokemon__form" method="post" action={`/sac`} onSubmit={handleFormSubmit}>
                     <p>
-                        <input type="text" name="name" />
+                        <input type="text" name="name" value={selectedPokemon()?.name || ''} />
                     </p>
                     <p>
-                        <input type="hidden" name="uuid" />
+                        <input type="hidden" name="uuid" value={selectedPokemon()?.uuid || ''} />
                     </p>
                     <button type="submit">Renommer</button>
-                </Form >
-                <button onClick={handleFormSubmit}>Annuler</button>
+                </Form>
+                <button onClick={handleFormCancel}>Annuler</button>
             </div>
         </>
     );
